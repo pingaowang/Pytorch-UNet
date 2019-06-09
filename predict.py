@@ -144,6 +144,10 @@ if __name__ == "__main__":
         print("\nPredicting image {} ...".format(fn))
 
         img = Image.open(fn)
+        if img.mode != 'RGB':
+            img = img.convert('RGB')
+        assert img.mode == 'RGB', "image is not RBG but is '{}'.".format(img.mode)
+
         if img.size[0] < img.size[1]:
             print("Error: image height larger than the width")
 
