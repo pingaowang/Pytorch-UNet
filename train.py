@@ -12,6 +12,10 @@ from eval import eval_net
 from unet import UNet
 from utils import get_ids, split_ids, split_train_val, get_imgs_and_masks, batch
 
+
+N_CHANNELS = 1
+N_CLASSES = 1
+
 def train_net(net,
               epochs=5,
               batch_size=1,
@@ -21,8 +25,8 @@ def train_net(net,
               gpu=False,
               img_scale=0.5):
 
-    dir_img = 'data/train/'
-    dir_mask = 'data/train_masks/'
+    dir_img = 'data/image/'
+    dir_mask = 'data/label/'
     dir_checkpoint = 'checkpoints/'
 
     ids = get_ids(dir_img)
@@ -62,8 +66,8 @@ def train_net(net,
         epoch_loss = 0
 
         for i, b in enumerate(batch(train, batch_size)):
-            imgs = np.array([i[0] for i in b]).astype(np.float32)
-            true_masks = np.array([i[1] for i in b])
+            imgs = np.array([j[0] for j in b]).astype(np.float32)
+            true_masks = np.array([j[1] for j in b])
 
             imgs = torch.from_numpy(imgs)
             true_masks = torch.from_numpy(true_masks)
@@ -79,7 +83,6 @@ def train_net(net,
 
             loss = criterion(masks_probs_flat, true_masks_flat)
             epoch_loss += loss.item()
-
             print('{0:.4f} --- loss: {1:.6f}'.format(i * batch_size / N_train, loss.item()))
 
             optimizer.zero_grad()
@@ -120,7 +123,7 @@ def get_args():
 if __name__ == '__main__':
     args = get_args()
 
-    net = UNet(n_channels=3, n_classes=1)
+    net = UNet(n_channels=N_CHANNELS, n_classes=N_CLASSES)
 
     if args.load:
         net.load_state_dict(torch.load(args.load))

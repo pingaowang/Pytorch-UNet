@@ -29,7 +29,11 @@ def resize_and_crop(pilimg, scale=0.5, final_height=None):
 
     img = pilimg.resize((newW, newH))
     img = img.crop((0, diff // 2, newW, newH - diff // 2))
-    return np.array(img, dtype=np.float32)
+    np_img = np.array(img, dtype=np.float32)
+    if len(np_img.shape)==2:
+        np_img = np.expand_dims(np_img, 2)
+
+    return np_img
 
 def batch(iterable, batch_size):
     """Yields lists by batch"""

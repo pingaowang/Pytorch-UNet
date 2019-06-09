@@ -125,7 +125,7 @@ if __name__ == "__main__":
     in_files = args.input
     out_files = get_output_filenames(args)
 
-    net = UNet(n_channels=3, n_classes=1)
+    net = UNet(n_channels=1, n_classes=1)
 
     print("Loading model {}".format(args.model))
 
@@ -144,9 +144,9 @@ if __name__ == "__main__":
         print("\nPredicting image {} ...".format(fn))
 
         img = Image.open(fn)
-        if img.mode != 'RGB':
-            img = img.convert('RGB')
-        assert img.mode == 'RGB', "image is not RBG but is '{}'.".format(img.mode)
+        # if img.mode != 'RGB':
+        #     img = img.convert('RGB')
+        # assert img.mode == 'RGB', "image is not RBG but is '{}'.".format(img.mode)
 
         if img.size[0] < img.size[1]:
             print("Error: image height larger than the width")
