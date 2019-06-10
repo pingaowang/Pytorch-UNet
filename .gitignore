@@ -5,3 +5,4 @@ __pycache__/
 SUBMISSION*
 .DS_Store
 .idea/
+play.py

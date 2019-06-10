@@ -23,14 +23,14 @@ def train_net(net,
               val_percent=0.05,
               save_cp=True,
               gpu=False,
-              img_scale=0.5):
+              img_scale=1):
 
     dir_img = 'data/image/'
     dir_mask = 'data/label/'
     dir_checkpoint = 'checkpoints/'
 
     ids = get_ids(dir_img)
-    ids = split_ids(ids)
+    ids = split_ids(ids, n=1)
 
     iddataset = split_train_val(ids, val_percent)
 
