@@ -58,7 +58,7 @@ def train_net(net,
                               lr=lr * (args.lr_decay ** epoch),
                               momentum=0.9,
                               weight_decay=0.0005)
-        print(args.lr_decay)
+        print("Current lr = {}".format(lr * (args.lr_decay ** epoch)))
         net.train()
 
         # reset the generators
