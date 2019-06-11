@@ -28,6 +28,8 @@ def train_net(net,
     dir_png = 'data/our_dataset/png'
     dir_mask = 'data/our_dataset/mask'
     dir_checkpoint = 'checkpoints/'
+    if not os.path.isdir(dir_checkpoint):
+        os.mkdir(dir_checkpoint)
 
     ids = get_ids(dir_png)
     ids = split_ids(ids, n=1)
