@@ -14,7 +14,7 @@ from utils import get_ids, split_ids, split_train_val, get_imgs_and_masks, batch
 
 
 N_CHANNELS = 1
-N_CLASSES = 1
+N_CLASSES = 2
 
 def train_net(net,
               epochs=5,
@@ -25,11 +25,11 @@ def train_net(net,
               gpu=False,
               img_scale=1):
 
-    dir_img = 'data/image/'
-    dir_mask = 'data/label/'
+    dir_png = 'data/our_dataset_mini/png'
+    dir_mask = 'data/our_dataset_mini/mask'
     dir_checkpoint = 'checkpoints/'
 
-    ids = get_ids(dir_img)
+    ids = get_ids(dir_png)
     ids = split_ids(ids, n=1)
 
     iddataset = split_train_val(ids, val_percent)
@@ -60,8 +60,8 @@ def train_net(net,
         net.train()
 
         # reset the generators
-        train = get_imgs_and_masks(iddataset['train'], dir_img, dir_mask, img_scale)
-        val = get_imgs_and_masks(iddataset['val'], dir_img, dir_mask, img_scale)
+        train = get_imgs_and_masks(iddataset['train'], dir_png, dir_mask, img_scale)
+        val = get_imgs_and_masks(iddataset['val'], dir_png, dir_mask, img_scale)
 
         epoch_loss = 0
 
@@ -80,16 +80,18 @@ def train_net(net,
             masks_probs_flat = masks_pred.view(-1)
 
             true_masks_flat = true_masks.view(-1)
+            true_masks_flat = true_masks_flat.float()
 
             loss = criterion(masks_probs_flat, true_masks_flat)
             epoch_loss += loss.item()
+
             print('{0:.4f} --- loss: {1:.6f}'.format(i * batch_size / N_train, loss.item()))
 
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
 
-        print('Epoch finished ! Loss: {}'.format(epoch_loss / i))
+        print('Epoch finished ! Loss: {}'.format(epoch_loss / (i+1)))
 
         if 1:
             val_dice = eval_net(net, val, gpu)
@@ -116,6 +118,8 @@ def get_args():
                       default=False, help='load file model')
     parser.add_option('-s', '--scale', dest='scale', type='float',
                       default=0.5, help='downscaling factor of the images')
+    parser.add_option('-v', '--val_percent', dest='vp', type='float',
+                      default=0.05, help='percent val set of all')
 
     (options, args) = parser.parse_args()
     return options
@@ -139,7 +143,8 @@ if __name__ == '__main__':
                   batch_size=args.batchsize,
                   lr=args.lr,
                   gpu=args.gpu,
-                  img_scale=args.scale)
+                  val_percent = args.vp,
+                  img_scale=1)  # currently img_scale must equal to 1. old: img_scale=args.scale)
     except KeyboardInterrupt:
         torch.save(net.state_dict(), 'INTERRUPTED.pth')
         print('Saved interrupt')

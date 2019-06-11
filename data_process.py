@@ -103,8 +103,8 @@ if __name__ == '__main__':
     side_length = 500
     n_classes = 2
     mask_dir = 'data/input_raw_images'
-    mask_out_dir = 'data/output/mask'
-    png_out_dir = 'data/output/png'
+    mask_out_dir = 'data/data_proc_output/mask'
+    png_out_dir = 'data/data_proc_output/png'
     if not os.path.isdir(mask_out_dir):
         os.mkdir(mask_out_dir)
     if not os.path.isdir(png_out_dir):
