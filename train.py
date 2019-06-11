@@ -25,8 +25,8 @@ def train_net(net,
               gpu=False,
               img_scale=1):
 
-    dir_png = 'data/our_dataset/png'
-    dir_mask = 'data/our_dataset/mask'
+    dir_png = "data/our_dataset/png"
+    dir_mask = "data/our_dataset/mask"
     dir_checkpoint = 'checkpoints/'
     if not os.path.isdir(dir_checkpoint):
         os.mkdir(dir_checkpoint)

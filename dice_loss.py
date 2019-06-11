@@ -7,10 +7,17 @@ class DiceCoeff(Function):
     def forward(self, input, target):
         self.save_for_backward(input, target)
         eps = 1e-7
-        self.inter = torch.dot(input.view(-1), target.view(-1))
-        self.union = torch.sum(input) + torch.sum(target) + eps
+        # only calculate on non-zero pixels in ground_truth
+        index_nonzero = torch.nonzero(target).view(-1)
+        if index_nonzero.size(0) == 0:
+            t = 1
+        else:
+            self.inter = torch.dot(input.view(-1)[index_nonzero],
+                                   target.view(-1)[index_nonzero])
+            self.union = torch.sum(input) + torch.sum(target) + eps
 
-        t = (2 * self.inter.float() + eps) / self.union.float()
+            t = (2 * self.inter.float() + eps) / self.union.float()
+
         return t
 
     # This function has only a single output, so it gets only one gradient
