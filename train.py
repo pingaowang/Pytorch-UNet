@@ -9,6 +9,7 @@ import torch.nn as nn
 from torch import optim
 
 from eval import eval_net
+from dice_loss import dice_coeff
 from unet import UNet
 from utils import get_ids, split_ids, split_train_val, get_imgs_and_masks, batch
 
@@ -25,8 +26,8 @@ def train_net(net,
               gpu=False,
               img_scale=1):
 
-    dir_png = "data/our_dataset/png"
-    dir_mask = "data/our_dataset/mask"
+    dir_png = "data/our_dataset_mini/png"
+    dir_mask = "data/our_dataset_mini/mask"
     dir_checkpoint = 'checkpoints/'
     if not os.path.isdir(dir_checkpoint):
         os.mkdir(dir_checkpoint)
@@ -66,6 +67,7 @@ def train_net(net,
         val = get_imgs_and_masks(iddataset['val'], dir_png, dir_mask, img_scale)
 
         epoch_loss = 0
+        epoch_tot = 0
 
         for i, b in enumerate(batch(train, batch_size)):
             imgs = np.array([j[0] for j in b]).astype(np.float32)
@@ -87,13 +89,20 @@ def train_net(net,
             loss = criterion(masks_probs_flat, true_masks_flat)
             epoch_loss += loss.item()
 
-            # print('{0:.4f} --- loss: {1:.6f}'.format(i * batch_size / N_train, loss.item()))
+            true_masks_flat_bin = true_masks_flat.unsqueeze(0)
+            masks_probs_flat_bin = (masks_probs_flat > 0.5).float().unsqueeze(0)
+            epoch_tot += dice_coeff(masks_probs_flat_bin, true_masks_flat_bin).item()
+
+
+
+            if i % 500 == 0:
+                print('{0} / {1} steps. --- loss: {2:.6f}, Dice: {3:.4f}'.format(i, N_train, epoch_loss / (i+1), epoch_tot / (i+1)))
 
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
 
-        print('Epoch finished ! Loss: {}'.format(epoch_loss / (i+1)))
+        print('Epoch finished ! Loss: {}, Dice: {}'.format(epoch_loss / (i+1), epoch_tot / (i+1)))
 
         if 1:
             val_dice = eval_net(net, val, gpu)
