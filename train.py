@@ -48,15 +48,14 @@ def train_net(net,
 
     N_train = len(iddataset['train'])
 
-    optimizer = optim.SGD(net.parameters(),
-                          lr=lr,
-                          momentum=0.9,
-                          weight_decay=0.0005)
-
     criterion = nn.BCELoss()
 
     for epoch in range(epochs):
         print('Starting epoch {}/{}.'.format(epoch + 1, epochs))
+        optimizer = optim.SGD(net.parameters(),
+                              lr=lr * (0.5 ** epoch),
+                              momentum=0.9,
+                              weight_decay=0.0005)
         net.train()
 
         # reset the generators
@@ -85,7 +84,7 @@ def train_net(net,
             loss = criterion(masks_probs_flat, true_masks_flat)
             epoch_loss += loss.item()
 
-            print('{0:.4f} --- loss: {1:.6f}'.format(i * batch_size / N_train, loss.item()))
+            # print('{0:.4f} --- loss: {1:.6f}'.format(i * batch_size / N_train, loss.item()))
 
             optimizer.zero_grad()
             loss.backward()
