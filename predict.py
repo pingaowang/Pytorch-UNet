@@ -146,6 +146,10 @@ def data_loader(in_dir, out_dir):
 
 if __name__ == "__main__":
     args = get_args()
+
+    if not os.path.isdir(args.output):
+        os.mkdir(args.output)
+
     in_files, out_files = data_loader(args.input, args.output)
 
     net = UNet(n_channels=1, n_classes=2)
