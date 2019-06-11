@@ -1,5 +1,6 @@
 import random
 import numpy as np
+from PIL import Image
 
 
 def get_square(img, pos):
@@ -80,3 +81,25 @@ def rle_encode(mask_image):
     runs = np.where(pixels[1:] != pixels[:-1])[0] + 2
     runs[1::2] = runs[1::2] - runs[:-1:2]
     return runs
+
+
+def int01_2darr_save2png(arr, out_path):
+    assert len(arr.shape) == 2, "input # dim expected 2, but here is {}".format(len(arr.shape))
+
+    im = Image.fromarray((arr * 255).astype(np.uint8))
+    im.save(out_path)
+
+
+def int01_3darr_save2png(arr, out_path):
+    assert len(arr.shape) == 3, "input # dim expected 3, but here is {}".format(len(arr.shape))
+    assert arr.shape[0] == 2, "Currently only used for 2 classes."
+
+    tensor_zero = np.zeros((1, arr.shape[1], arr.shape[2]))
+    tensor_chw = np.concatenate((arr, tensor_zero), axis=0) * 255
+    tensor_rgb = (np.transpose(tensor_chw, (1, 2, 0))).astype(np.uint8)
+    Image.fromarray(tensor_rgb).save(out_path)
+
+
+def listdir_check(l):
+    if '.DS_Store' in l:
+        l.remove('.DS_Store')

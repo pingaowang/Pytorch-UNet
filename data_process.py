@@ -1,6 +1,7 @@
 import os
 import numpy as np
 from PIL import Image
+from utils import int01_3darr_save2png
 
 
 def int01_2darr_save2png(arr, out_path):
