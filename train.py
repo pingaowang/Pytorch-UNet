@@ -53,9 +53,10 @@ def train_net(net,
     for epoch in range(epochs):
         print('Starting epoch {}/{}.'.format(epoch + 1, epochs))
         optimizer = optim.SGD(net.parameters(),
-                              lr=lr * (0.5 ** epoch),
+                              lr=lr * (args.lr_decay ** epoch),
                               momentum=0.9,
                               weight_decay=0.0005)
+        print(args.lr_decay)
         net.train()
 
         # reset the generators
@@ -119,6 +120,8 @@ def get_args():
                       default=0.5, help='downscaling factor of the images')
     parser.add_option('-v', '--val_percent', dest='vp', type='float',
                       default=0.05, help='percent val set of all')
+    parser.add_option('-d', '--lr_decay', dest='lr_decay', type='float',
+                      default=0.1, help='learning rate decay per epoch')
 
     (options, args) = parser.parse_args()
     return options
