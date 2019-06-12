@@ -15,7 +15,7 @@ from utils import get_ids, split_ids, split_train_val, get_imgs_and_masks, batch
 
 
 N_CHANNELS = 1
-N_CLASSES = 2
+N_CLASSES = 3
 
 def train_net(net,
               epochs=5,
@@ -92,8 +92,6 @@ def train_net(net,
             true_masks_flat_bin = true_masks_flat.unsqueeze(0)
             masks_probs_flat_bin = (masks_probs_flat > 0.5).float().unsqueeze(0)
             epoch_tot += dice_coeff(masks_probs_flat_bin, true_masks_flat_bin).item()
-
-
 
             if i % 500 == 0:
                 print('{0} / {1} steps. --- loss: {2:.6f}, Dice: {3:.4f}'.format(i, N_train, epoch_loss / (i+1), epoch_tot / (i+1)))

@@ -29,7 +29,12 @@ def get_arr_int_padded(path_img):
     """
     arr_img = np.array(Image.open(path_img))
     # convert type to int
-    arr_int = (np.mean(arr_img, 2) - 255).astype(bool).astype(int)
+    if len(arr_img.shape) == 3:
+        arr_int = (np.mean(arr_img, 2) - 255).astype(bool).astype(int)
+    elif len(arr_img.shape) == 2:
+        arr_int = 1 - arr_img.astype(bool).astype(int)
+    else:
+        assert len(arr_img.shape) == 2, "img shape error, {}".format(len(arr_img.shape) == 2)
     # zero padding
     arr_int_padded = np.pad(arr_int, ((300, 0), (0, 300)), 'constant')
     return arr_int_padded
@@ -102,7 +107,7 @@ def generate_unit_tensors(tensor_all, mask_out_dir, png_out_dir, img_id):
 
 if __name__ == '__main__':
     side_length = 500
-    n_classes = 2
+    n_classes = 3
     mask_dir = 'data/input_raw_images'
     mask_out_dir = 'data/data_proc_output/mask'
     png_out_dir = 'data/data_proc_output/png'

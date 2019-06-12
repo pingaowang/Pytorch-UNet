@@ -152,7 +152,7 @@ if __name__ == "__main__":
 
     in_files, out_files = data_loader(args.input, args.output)
 
-    net = UNet(n_channels=1, n_classes=2)
+    net = UNet(n_channels=1, n_classes=3)
 
     print("Loading model {}".format(args.model))
 

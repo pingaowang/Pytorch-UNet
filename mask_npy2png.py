@@ -1,11 +1,11 @@
 import os
 import numpy as np
 from PIL import Image
-from utils import int01_3darr_save2png, listdir_check
+from utils import int01_3darr_save2png, int01_3darr_save2png_3cls, listdir_check
 
 
-dir_npy = "data/0017_for_test/mask/"
-dir_out = "data/0017_for_test/mask_vis/"
+dir_npy = "data/data_proc_output/mask/"
+dir_out = "data/data_proc_output/mask_vis/"
 
 # load npy
 npy_file_list = os.listdir(dir_npy)
@@ -23,7 +23,7 @@ for i in range(len(npy_path_list)):
     _name = npy_file_list[i][:-4] + '_vis.png'
     out_path = os.path.join(dir_out, _name)
 
-    int01_3darr_save2png(tensor_mask, out_path)
+    int01_3darr_save2png_3cls(tensor_mask, out_path)
 
 
 

@@ -100,6 +100,15 @@ def int01_3darr_save2png(arr, out_path):
     Image.fromarray(tensor_rgb).save(out_path)
 
 
+def int01_3darr_save2png_3cls(arr, out_path):
+    assert len(arr.shape) == 3, "input # dim expected 3, but here is {}".format(len(arr.shape))
+    assert arr.shape[0] == 3, "Currently only used for 3 classes."
+
+    tensor_chw = arr * 255
+    tensor_rgb = (np.transpose(tensor_chw, (1, 2, 0))).astype(np.uint8)
+    Image.fromarray(tensor_rgb).save(out_path)
+
+
 def listdir_check(l):
     if '.DS_Store' in l:
         l.remove('.DS_Store')

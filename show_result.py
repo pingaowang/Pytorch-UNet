@@ -4,14 +4,16 @@ from utils import listdir_check
 import numpy as np
 
 
-ori_dir = "data/0017_for_test/mask_vis/"
+ori_dir = "data/0010_for_test/mask_vis/"
 list_pred_dir = [
-    "data/test_cp4_1st/",
-    "data/test_cp5_1st/",
-    "data/test_cp10_1st/"
+    "data/test_5_cp1/",
+    "data/test_5_cp2/",
+    "data/test_5_cp4/",
+    "data/test_5_cp7/",
+    "data/test_5_cp10/",
 ]
 
-assert len(list_pred_dir) == 3, "Corrently only for 3 prediced images"
+assert len(list_pred_dir) == 5, "Corrently only for 5 prediced images"
 
 list_names = []
 
@@ -41,8 +43,9 @@ for i in range(len(list_ori_name)):
         list_pred_images.append(image_2)
 
     numpy_horizontal_1 = np.hstack(tuple(list_pred_images[:2]))
-    numpy_horizontal_2 = np.hstack(tuple(list_pred_images[2:]))
-    numpy_vertical = np.vstack((numpy_horizontal_1, numpy_horizontal_2))
+    numpy_horizontal_2 = np.hstack(tuple(list_pred_images[2:4]))
+    numpy_horizontal_3 = np.hstack(tuple(list_pred_images[4:]))
+    numpy_vertical = np.vstack((numpy_horizontal_1, numpy_horizontal_2, numpy_horizontal_3))
 
     cv2.imshow("id: {}".format(list_ori_name[i]), numpy_vertical)
 
