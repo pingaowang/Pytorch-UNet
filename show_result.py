@@ -4,13 +4,13 @@ from utils import listdir_check
 import numpy as np
 
 
-ori_dir = "data/0010_for_test/mask_vis/"
+ori_dir = "data/0010_for_test_3cls/mask_vis/"
 list_pred_dir = [
-    "data/test_5_cp1/",
-    "data/test_5_cp2/",
-    "data/test_5_cp4/",
-    "data/test_5_cp7/",
-    "data/test_5_cp10/",
+    "data/test_6_cp1/",
+    "data/test_6_cp2/",
+    "data/test_6_cp3/",
+    "data/test_6_cp4/",
+    "data/test_6_cp5/",
 ]
 
 assert len(list_pred_dir) == 5, "Corrently only for 5 prediced images"

@@ -8,7 +8,7 @@ import torch.nn.functional as F
 from PIL import Image
 
 from unet import UNet
-from utils import resize_and_crop, normalize, split_img_into_squares, hwc_to_chw, merge_masks, dense_crf, int01_3darr_save2png, listdir_check
+from utils import resize_and_crop, normalize, split_img_into_squares, hwc_to_chw, merge_masks, dense_crf, int01_3darr_save2png_3cls, listdir_check
 from utils import plot_img_and_mask
 
 from torchvision import transforms
@@ -194,6 +194,6 @@ if __name__ == "__main__":
             # result = mask_to_image(mask)
             # result.save(out_files[i])
             mask = mask.astype(int)
-            int01_3darr_save2png(mask, out_fn)
+            int01_3darr_save2png_3cls(mask, out_fn)
 
             print("Mask saved to {}".format(out_files[i]))
