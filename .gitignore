@@ -6,3 +6,5 @@ SUBMISSION*
 .DS_Store
 .idea/
 play.py
+
+data/
