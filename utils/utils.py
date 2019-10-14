@@ -102,7 +102,7 @@ def int01_3darr_save2png(arr, out_path):
 
 def int01_3darr_save2png_3cls(arr, out_path):
     assert len(arr.shape) == 3, "input # dim expected 3, but here is {}".format(len(arr.shape))
-    assert arr.shape[0] == 3, "Currently only used for 3 classes."
+    assert arr.shape[0] == 3, "Currently only used for 3 classes, but here is {}".format(arr.shape[0])
 
     tensor_chw = arr * 255
     tensor_rgb = (np.transpose(tensor_chw, (1, 2, 0))).astype(np.uint8)

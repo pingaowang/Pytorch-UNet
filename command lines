@@ -1,0 +1,7 @@
+command line:
+
+Train:
+-e 10 -b 4 -g 
+
+Pred:
+--model checkpoints/CP5.pth --input data/line_v2_0_test/png_train --output pred --no-crf

@@ -8,6 +8,7 @@ def eval_net(net, dataset, gpu=False):
     """Evaluation without the densecrf with the dice coefficient"""
     net.eval()
     tot = 0
+    i_out = 0
     for i, b in enumerate(dataset):
         img = b[0]
         true_mask = b[1]
@@ -25,4 +26,5 @@ def eval_net(net, dataset, gpu=False):
         mask_pred = mask_pred.unsqueeze(0)
 
         tot += dice_coeff(mask_pred, true_mask).item()
-    return tot / (i + 1)
+        i_out = i
+    return tot / (i_out + 1)

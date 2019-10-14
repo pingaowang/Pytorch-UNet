@@ -6,6 +6,7 @@ import torch
 import torch.nn.functional as F
 
 from PIL import Image
+import cv2
 
 from unet import UNet
 from utils import resize_and_crop, normalize, split_img_into_squares, hwc_to_chw, merge_masks, dense_crf, int01_3darr_save2png_3cls, listdir_check
@@ -144,6 +145,18 @@ def data_loader(in_dir, out_dir):
     return list_i, list_o
 
 
+def color_bin_arr(arr_bin, color: list):
+    h, w = arr_bin.shape
+
+    arr_colored = np.zeros((h, w, 3))
+
+    arr_colored[:, :, 0] = arr_bin * color[0]
+    arr_colored[:, :, 1] = arr_bin * color[1]
+    arr_colored[:, :, 2] = arr_bin * color[2]
+
+    return arr_colored
+
+
 if __name__ == "__main__":
     args = get_args()
 
@@ -152,7 +165,7 @@ if __name__ == "__main__":
 
     in_files, out_files = data_loader(args.input, args.output)
 
-    net = UNet(n_channels=1, n_classes=3)
+    net = UNet(n_channels=3, n_classes=4)
 
     print("Loading model {}".format(args.model))
 
@@ -185,15 +198,33 @@ if __name__ == "__main__":
                            use_dense_crf= not args.no_crf,
                            use_gpu=not args.cpu)
 
-        if args.viz:
-            print("Visualizing results for image {}, close to continue ...".format(fn))
-            plot_img_and_mask(img, mask)
+        # color the mask
+        l_color = [
+            [50, 0, 0],
+            [0, 50, 0],
+            [0, 0, 50],
+            [50, 50, 0]
+        ]
+        img_size = mask.shape[1]
+        arr_bin = mask.astype(int)
+        arr_bin = np.transpose(arr_bin, (1, 2, 0))
+        arr_color = np.zeros((img_size, img_size, 3))
+        for i_cls in range(arr_bin.shape[2]):
+            arr_color_2 = color_bin_arr(arr_bin[:, :, i_cls], l_color[i_cls])
+            arr_color = arr_color + arr_color_2
+        arr_color = - (arr_color - 255)
+
+        # if args.viz:
+        #     print("Visualizing results for image {}, close to continue ...".format(fn))
+        #     plot_img_and_mask(img, mask)
 
         if not args.no_save:
             out_fn = out_files[i]
             # result = mask_to_image(mask)
             # result.save(out_files[i])
-            mask = mask.astype(int)
-            int01_3darr_save2png_3cls(mask, out_fn)
+            # mask = mask.astype(int)
+            # int01_3darr_save2png_3cls(mask, out_fn)
+            # Image.fromarray(arr_color).save(out_fn)
+            cv2.imwrite(out_fn, arr_color)
 
             print("Mask saved to {}".format(out_files[i]))

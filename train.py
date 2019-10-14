@@ -14,8 +14,8 @@ from unet import UNet
 from utils import get_ids, split_ids, split_train_val, get_imgs_and_masks, batch
 
 
-N_CHANNELS = 1
-N_CLASSES = 3
+N_CHANNELS = 3
+N_CLASSES = 4
 
 def train_net(net,
               epochs=5,
@@ -26,8 +26,9 @@ def train_net(net,
               gpu=False,
               img_scale=1):
 
-    dir_png = "data/our_dataset/png"
-    dir_mask = "data/our_dataset/mask"
+    dir_png = "data/caddata_line_v2_0/png"
+    dir_mask = "data/caddata_line_v2_0/mask"
+    # dir_mask = "data/mini/mask"
     dir_checkpoint = 'checkpoints/'
     if not os.path.isdir(dir_checkpoint):
         os.mkdir(dir_checkpoint)
@@ -54,7 +55,7 @@ def train_net(net,
     criterion = nn.BCELoss()
 
     for epoch in range(epochs):
-        print('Starting epoch {}/{}.'.format(epoch + 1, epochs))
+        # print('Starting epoch {}/{}.'.format(epoch + 1, epochs))
         optimizer = optim.SGD(net.parameters(),
                               lr=lr * (args.lr_decay ** epoch),
                               momentum=0.9,
@@ -65,10 +66,12 @@ def train_net(net,
         # reset the generators
         train = get_imgs_and_masks(iddataset['train'], dir_png, dir_mask, img_scale)
         val = get_imgs_and_masks(iddataset['val'], dir_png, dir_mask, img_scale)
+        # val = get_imgs_and_masks(iddataset['val'], dir_png, dir_mask, img_scale)
 
         epoch_loss = 0
         epoch_tot = 0
 
+        i_out = 0
         for i, b in enumerate(batch(train, batch_size)):
             imgs = np.array([j[0] for j in b]).astype(np.float32)
             true_masks = np.array([j[1] for j in b])
@@ -83,6 +86,8 @@ def train_net(net,
             masks_pred = net(imgs)
             masks_probs_flat = masks_pred.view(-1)
 
+            # print(np.sum(np.array(masks_probs_flat.detach().cpu())))
+
             true_masks_flat = true_masks.view(-1)
             true_masks_flat = true_masks_flat.float()
 
@@ -91,25 +96,32 @@ def train_net(net,
 
             true_masks_flat_bin = true_masks_flat.unsqueeze(0)
             masks_probs_flat_bin = (masks_probs_flat > 0.5).float().unsqueeze(0)
-            epoch_tot += dice_coeff(masks_probs_flat_bin, true_masks_flat_bin).item()
+            this_dice = dice_coeff(masks_probs_flat_bin, true_masks_flat_bin).item()
+            epoch_tot += this_dice
 
-            if i % 500 == 0:
-                print('{0} / {1} steps. --- loss: {2:.6f}, Dice: {3:.4f}'.format(i, N_train, epoch_loss / (i+1), epoch_tot / (i+1)))
+            if i % 100 == 0:
+                print('{0} / {1} steps. --- loss: {2:.6f}, Dice: {3:.4f}'.format(i, int(N_train / 4), epoch_loss / (i+1), epoch_tot / (i+1)))
+                # print('{0} / {1} steps. --- loss: {2:.6f}, Dice: {3:.4f}'.format(i, N_train, epoch_loss / (i + 1),
+                #                                                                  epoch_tot/ (i + 1)))
 
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
 
-        print('Epoch finished ! Loss: {}, Dice: {}'.format(epoch_loss / (i+1), epoch_tot / (i+1)))
+            i_out = i
+
+
+        print('Epoch finished ! Loss: {}, Dice: {}'.format(epoch_loss / (i_out+1), epoch_tot / (i_out+1)))
 
         if 1:
             val_dice = eval_net(net, val, gpu)
             print('Validation Dice Coeff: {}'.format(val_dice))
 
-        if save_cp:
+        if save_cp and (epoch % 10 == 0):
             torch.save(net.state_dict(),
                        dir_checkpoint + 'CP{}.pth'.format(epoch + 1))
             print('Checkpoint {} saved !'.format(epoch + 1))
+
 
 
 
@@ -154,7 +166,7 @@ if __name__ == '__main__':
                   batch_size=args.batchsize,
                   lr=args.lr,
                   gpu=args.gpu,
-                  val_percent = args.vp,
+                  val_percent=args.vp,
                   img_scale=1)  # currently img_scale must equal to 1. old: img_scale=args.scale)
     except KeyboardInterrupt:
         torch.save(net.state_dict(), 'INTERRUPTED.pth')
