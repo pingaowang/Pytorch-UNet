@@ -11,8 +11,44 @@ import cv2
 from unet import UNet
 from utils import resize_and_crop, normalize, split_img_into_squares, hwc_to_chw, merge_masks, dense_crf, int01_3darr_save2png_3cls, listdir_check
 from utils import plot_img_and_mask
+from shutil import copyfile
 
 from torchvision import transforms
+
+
+N_CLASSES = 8
+
+# color the mask
+# l_color = [
+#     [25, 0, 0],
+#     [50, 0, 0],
+#     [75, 0, 0],
+#     [100, 0, 0],
+#     [0, 25, 0],
+#     [0, 50, 0],
+#     [0, 75, 0],
+#     [0, 100, 0],
+#     [0, 0, 25],
+#     [0, 0, 50],
+#     [0, 0, 75],
+#     [0, 0, 100]
+# ]
+
+l_color = [
+    [100, 50, 50],
+    [50, 100, 50],
+    [50, 50, 100],
+    [100, 100, 50],
+    [100, 100, 100],
+    [120, 100, 100],
+    [100, 120, 100],
+    [100, 100, 120],
+    [120, 120, 100],
+    [120, 100, 120],
+    [100, 120, 120],
+    [120, 120, 120]
+]
+
 
 def predict_img(net,
                 full_img,
@@ -50,23 +86,25 @@ def predict_img(net,
 
         # left_probs = output_left.squeeze(0)
         # right_probs = output_right.squeeze(0)
-        probs = output.squeeze(0)
+        # probs = output # .squeeze(0)
+        # arr_probs = np.array(probs.cpu())
+        # arr_probs = np.transpose
 
-        tf = transforms.Compose(
-            [
-                transforms.ToPILImage(),
-                transforms.Resize(img_height),
-                transforms.ToTensor()
-            ]
-        )
+        # tf = transforms.Compose(
+        #     [
+        #         # transforms.ToPILImage(),
+        #         # transforms.Resize(img_height),
+        #         transforms.ToTensor()
+        #     ]
+        # )
         
         # left_probs = tf(left_probs.cpu())
         # right_probs = tf(right_probs.cpu())
-        probs = tf(probs.cpu())
+        # probs = tf(arr_probs)
 
         # left_mask_np = left_probs.squeeze().cpu().numpy()
         # right_mask_np = right_probs.squeeze().cpu().numpy()
-        mask_np = probs.squeeze().cpu().numpy()
+        mask_np = output.squeeze().cpu().numpy()
 
     # full_mask = merge_masks(left_mask_np, right_mask_np, img_width)
 
@@ -139,10 +177,10 @@ def data_loader(in_dir, out_dir):
     list_i = []
     list_o = []
     for i_name in list_i_name:
-        list_o.append(os.path.join(out_dir, 'pred_' + i_name))
+        list_o.append(os.path.join(out_dir, 'predicted_png', i_name))
         list_i.append(os.path.join(in_dir, i_name))
 
-    return list_i, list_o
+    return list_i, list_o, list_i_name
 
 
 def color_bin_arr(arr_bin, color: list):
@@ -160,12 +198,30 @@ def color_bin_arr(arr_bin, color: list):
 if __name__ == "__main__":
     args = get_args()
 
+    folder_predicted_png = os.path.join(args.output, 'predicted_png')
+    folder_comparison = os.path.join(args.output, 'comparison_png')
+    folder_full_pred = os.path.join(args.output, 'full_pred')
     if not os.path.isdir(args.output):
         os.mkdir(args.output)
+    if not os.path.isdir(folder_predicted_png):
+        os.mkdir(folder_predicted_png)
+    if not os.path.isdir(folder_comparison):
+        os.mkdir(folder_comparison)
+    if not os.path.isdir(folder_full_pred):
+        os.mkdir(folder_full_pred)
 
-    in_files, out_files = data_loader(args.input, args.output)
+    in_files, out_files, l_img_names = data_loader(args.input, args.output)
 
-    net = UNet(n_channels=3, n_classes=4)
+    # copyfiles in input root
+    in_root = args.input[:-4]
+    for f_png_root in os.listdir(in_root):
+        if f_png_root.endswith('.png'):
+            copyfile(
+                os.path.join(in_root, f_png_root),
+                os.path.join(args.output, f_png_root)
+            )
+
+    net = UNet(n_channels=3, n_classes=N_CLASSES)
 
     print("Loading model {}".format(args.model))
 
@@ -198,18 +254,12 @@ if __name__ == "__main__":
                            use_dense_crf= not args.no_crf,
                            use_gpu=not args.cpu)
 
-        # color the mask
-        l_color = [
-            [50, 0, 0],
-            [0, 50, 0],
-            [0, 0, 50],
-            [50, 50, 0]
-        ]
         img_size = mask.shape[1]
         arr_bin = mask.astype(int)
         arr_bin = np.transpose(arr_bin, (1, 2, 0))
         arr_color = np.zeros((img_size, img_size, 3))
         for i_cls in range(arr_bin.shape[2]):
+        # for i_cls in range(3):
             arr_color_2 = color_bin_arr(arr_bin[:, :, i_cls], l_color[i_cls])
             arr_color = arr_color + arr_color_2
         arr_color = - (arr_color - 255)
@@ -218,13 +268,60 @@ if __name__ == "__main__":
         #     print("Visualizing results for image {}, close to continue ...".format(fn))
         #     plot_img_and_mask(img, mask)
 
+        ## Comparison of img and arr_color
+        arr_img = np.array(img)
+        arr_comb = np.concatenate((arr_img, arr_color), axis=1)
+
         if not args.no_save:
+            # save pred_block
             out_fn = out_files[i]
-            # result = mask_to_image(mask)
-            # result.save(out_files[i])
-            # mask = mask.astype(int)
-            # int01_3darr_save2png_3cls(mask, out_fn)
-            # Image.fromarray(arr_color).save(out_fn)
             cv2.imwrite(out_fn, arr_color)
 
+            # save comparison
+            cv2.imwrite(os.path.join(folder_comparison, l_img_names[i]), arr_comb)
+
             print("Mask saved to {}".format(out_files[i]))
+
+
+    """
+    Combine output blocks to a fullsize image
+    """
+    N_ROW = 6
+    N_COL = 6
+
+    folder_png = folder_predicted_png
+    file_out = os.path.join(folder_full_pred, 'fullsize.png')
+
+    # prepare list of png filename
+    l_filename = []
+    for f_png in os.listdir(folder_png):
+        if f_png.endswith('.png'):
+            l_filename.append(f_png)
+    l_filename.sort()
+    assert N_ROW * N_COL == len(l_filename), "N_ROW * N_COL expected equal to len(l_filename)."
+
+    h, w, c = cv2.imread(os.path.join(folder_png, l_filename[0])).shape
+    h_full = N_COL * h
+    w_full = N_ROW * w
+
+    img_out = np.zeros((w_full, h_full, 3))
+
+    for i in range(N_ROW):
+        for j in range(N_COL):
+            block = cv2.imread(os.path.join(folder_png, l_filename[j * N_COL + i]))
+            img_out[w * i: w * (i + 1), h * j: h * (j + 1), :] = block
+
+    # Save img_out
+    cv2.imwrite(file_out, img_out)
+
+
+
+
+
+
+
+
+
+
+
+

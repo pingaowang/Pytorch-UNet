@@ -1,5 +1,6 @@
 import torch
 import torch.nn.functional as F
+import numpy as np
 
 from dice_loss import dice_coeff
 
@@ -15,6 +16,7 @@ def eval_net(net, dataset, gpu=False):
 
         img = torch.from_numpy(img).unsqueeze(0)
         true_mask = torch.from_numpy(true_mask).unsqueeze(0)
+        true_mask = np.transpose(true_mask, (0, 3, 1, 2))
         true_mask = true_mask.float()
 
         if gpu:
