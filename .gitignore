@@ -9,3 +9,6 @@ play.py
 
 data/
 pred/
+OLD/
+log*
+pred_*

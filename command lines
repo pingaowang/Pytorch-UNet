@@ -5,3 +5,19 @@ Train:
 
 Pred:
 --model checkpoints/CP5.pth --input data/line_v2_0_test/png_train --output pred --no-crf
+
+
+
+====
+fint-tuning of area:
+-l 1 -d 0.95 l2 0 -g -e 50 -b 2 --data data/caddata_area_v2_1 --log logs_area_ft/log_area_v2_lr1e+1_l20
+-l 0.1 -d 0.95 l2 0 -g -e 50 -b 2 --data data/caddata_area_v2_1 --log logs_area_ft/log_area_v2_lr1e-1_l20
+-l 0.01 -d 0.95 l2 0 -g -e 50 -b 2 --data data/caddata_area_v2_1 --log logs_area_ft/log_area_v2_lr1e-2_l20
+
+-l 1 -d 0.95 l2 0.0005 -g -e 50 -b 2 --data data/caddata_area_v2_1 --log logs_area_ft/log_area_v2_lr1e+1_l20005
+-l 0.1 -d 0.95 l2 0.0005 -g -e 50 -b 2 --data data/caddata_area_v2_1 --log logs_area_ft/log_area_v2_lr1e-1_l20005
+-l 0.01 -d 0.95 l2 0.0005 -g -e 50 -b 2 --data data/caddata_area_v2_1 --log logs_area_ft/log_area_v2_lr1e-2_l20005
+
+-l 1 -d 0.95 l2 0.005 -g -e 50 -b 2 --data data/caddata_area_v2_1 --log logs_area_ft/log_area_v2_lr1e+1_l2005
+-l 0.1 -d 0.95 l2 0.005 -g -e 50 -b 2 --data data/caddata_area_v2_1 --log logs_area_ft/log_area_v2_lr1e-1_l2005
+-l 0.01 -d 0.95 l2 0.005 -g -e 50 -b 2 --data data/caddata_area_v2_1 --log logs_area_ft/log_area_v2_lr1e-2_l2005

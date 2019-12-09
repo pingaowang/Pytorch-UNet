@@ -16,7 +16,8 @@ from shutil import copyfile
 from torchvision import transforms
 
 
-N_CLASSES = 8
+N_CLASSES_AREA = 8
+N_CLASSES_LINE = 4
 
 # color the mask
 # l_color = [
@@ -61,7 +62,9 @@ def predict_img(net,
     img_height = full_img.size[1]
     img_width = full_img.size[0]
 
-    img = resize_and_crop(full_img, scale=scale_factor)
+    # img = resize_and_crop(full_img, scale=scale_factor)
+    # img = normalize(img)
+    img = np.array(full_img, dtype=np.float32)
     img = normalize(img)
 
     # left_square, right_square = split_img_into_squares(img)
@@ -146,6 +149,8 @@ def get_args():
     parser.add_argument('--scale', '-s', type=float,
                         help="Scale factor for the input images",
                         default=1)
+    parser.add_argument('--task-type', type=str, help='line or area')
+    print(parser.parse_args())
 
     return parser.parse_args()
 
@@ -183,7 +188,7 @@ def data_loader(in_dir, out_dir):
     return list_i, list_o, list_i_name
 
 
-def color_bin_arr(arr_bin, color: list):
+def color_bin_arr(arr_bin, color):
     h, w = arr_bin.shape
 
     arr_colored = np.zeros((h, w, 3))
@@ -197,6 +202,12 @@ def color_bin_arr(arr_bin, color: list):
 
 if __name__ == "__main__":
     args = get_args()
+
+    assert args.task_type in ['line', 'area']
+    if args.task_type == 'line':
+        N_CLASSES = N_CLASSES_LINE
+    elif args.task_type == 'area':
+        N_CLASSES = N_CLASSES_AREA
 
     folder_predicted_png = os.path.join(args.output, 'predicted_png')
     folder_comparison = os.path.join(args.output, 'comparison_png')
