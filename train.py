@@ -91,12 +91,12 @@ def fit(net,
             #                       lr=lr * (args.lr_decay ** epoch),
             #                       momentum=mom,
             #                       weight_decay=l2)
-            # optimizer = optim.Adam(net.parameters(),
-            #                       lr=lr * (args.lr_decay ** epoch),
-            #                       weight_decay=l2)
-            optimizer = optim.RMSprop(net.parameters(),
-                                      lr=lr * (args.lr_decay ** epoch),
-                                      weight_decay=l2)
+            optimizer = optim.Adam(net.parameters(),
+                                   lr=lr * (args.lr_decay ** epoch),
+                                   weight_decay=l2)
+            # optimizer = optim.RMSprop(net.parameters(),
+            #                           lr=lr * (args.lr_decay ** epoch),
+            #                           weight_decay=l2)
             print("Current lr = {}".format(lr * (args.lr_decay ** epoch)))
             f_log.write("Current lr = {}".format(lr * (args.lr_decay ** epoch)) + '\n')
 
