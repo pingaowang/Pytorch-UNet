@@ -38,7 +38,8 @@ def fit(net,
         img_scale=1,
         l2=1e-8,
         mom=0.9,
-        n_classes=4
+        n_classes=4,
+        loss_function='bce'
         ):
 
     # dir_png = "data/caddata_line_v2_1_mini/png"
@@ -77,8 +78,10 @@ def fit(net,
 
     N_train = len(iddataset['train'])
 
-    criterion = nn.BCELoss()
-    # criterion = nn.MSELoss()
+    if loss_function == 'bce':
+        criterion = nn.BCELoss()
+    elif loss_function == 'mse':
+        criterion = nn.MSELoss()
     # criterion = nn.CrossEntropyLoss()
 
     with open(os.path.join(args.log, 'log.txt'), 'w+') as f_log:
@@ -269,6 +272,7 @@ def get_args():
                       default=0.1, help='learning rate decay per epoch')
     parser.add_option('--l2', default=0.00000001, type=float, help="SGD's L2 panelty.")
     parser.add_option('--mom', default=0.9, type=float, help="SGD's momentum.")
+    parser.add_option('--loss', default='bce', type=str, help='loss function. [bce, mse]')
 
     (options, args) = parser.parse_args()
     return options
@@ -288,6 +292,8 @@ if __name__ == '__main__':
     if not os.path.isdir(FOLDER_LOG):
         os.mkdir(FOLDER_LOG)
     writer = SummaryWriter(logdir=FOLDER_LOG)
+
+    assert args.loss in ['bce', 'mse']
 
     net = UNet(n_channels=N_CHANNELS, n_classes=N_CLASSES)
 
@@ -310,7 +316,8 @@ if __name__ == '__main__':
             l2=args.l2,
             mom=args.mom,
             n_classes=N_CLASSES,
-            tf_writer=writer
+            tf_writer=writer,
+            loss_function=args.loss
             )  # currently img_scale must equal to 1. old: img_scale=args.scale)
         writer.close()
     except KeyboardInterrupt:
