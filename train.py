@@ -224,6 +224,11 @@ def fit(net,
                 tot_val += dice_val
 
                 loss_val = criterion(masks_probs_flat, true_masks_flat)
+                in_nonzero = torch.nonzero(true_masks_flat)
+                loss_val_nonzero = criterion(masks_probs_flat[in_nonzero], true_masks_flat[in_nonzero])
+                if in_nonzero.size(0) != 0:
+                    loss_val = loss_val + alpha_non_zero * loss_val_nonzero
+
             epoch_loss_val = loss_val / (i_val + 1)
             epoch_dice_val = tot_val / (i_val + 1)
             epoch_acc_val = epoch_acc_val / (i_val + 1)
