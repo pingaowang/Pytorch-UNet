@@ -14,10 +14,8 @@ from unet import UNet
 from utils import get_ids, split_ids, split_train_val, get_imgs_and_masks, batch
 import random
 
-from play import iou, iou_all
-
 from tensorboardX import SummaryWriter
-from utils.loss import iou_loss
+from utils.loss import iou, iou_all
 
 
 N_CHANNELS = 3
@@ -46,19 +44,24 @@ def fit(net,
 
     # dir_png = "data/caddata_line_v2_1_mini/png"
     # dir_mask = "data/caddata_line_v2_1_mini/mask"
-    dir_png = os.path.join(args.data, 'png')
-    dir_mask = os.path.join(args.data, 'mask')
+    dir_png_train = os.path.join(args.data, 'train', 'png')
+    dir_mask_train = os.path.join(args.data, 'train', 'mask')
+    dir_png_val = os.path.join(args.data, 'val', 'png')
+    dir_mask_val = os.path.join(args.data, 'val', 'mask')
     # dir_mask = "data/mini/mask"
 
     dir_checkpoint = os.path.join(args.log, 'checkpoints')
     if not os.path.isdir(dir_checkpoint):
         os.mkdir(dir_checkpoint)
 
-    ids = get_ids(dir_png)
-    ids = split_ids(ids, n=1)
-    l_ids = list(ids)
-    l_ids_train = l_ids[:-108]
-    l_ids_val = l_ids[-108:]
+    # train
+    ids_train = get_ids(dir_png_train)
+    ids_train = split_ids(ids_train, n=1)
+    l_ids_train = list(ids_train)
+    # val
+    ids_val = get_ids(dir_png_val)
+    ids_val = split_ids(ids_val, n=1)
+    l_ids_val = list(ids_val)
 
     # iddataset = split_train_val(ids, val_percent)
     iddataset = {
@@ -111,8 +114,8 @@ def fit(net,
                 'val': l_ids_val
             }
             # reset the generators
-            train = get_imgs_and_masks(iddataset['train'], dir_png, dir_mask, img_scale)
-            val = get_imgs_and_masks(iddataset['val'], dir_png, dir_mask, img_scale)
+            train = get_imgs_and_masks(iddataset['train'], dir_png_train, dir_mask_train, img_scale)
+            val = get_imgs_and_masks(iddataset['val'], dir_png_val, dir_mask_val, img_scale)
 
             epoch_loss = 0
             epoch_tot = 0

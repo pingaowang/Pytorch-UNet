@@ -54,3 +54,6 @@ def get_full_img_and_mask(id, dir_img, dir_mask):
     im = Image.open(dir_img + id + '.jpg')
     mask = Image.open(dir_mask + id + '_mask.gif')
     return np.array(im), np.array(mask)
+
+
+# def load_img(, if_train=0):
