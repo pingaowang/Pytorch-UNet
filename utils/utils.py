@@ -28,8 +28,10 @@ def resize_and_crop(pilimg, scale=0.5, final_height=None):
     else:
         diff = newH - final_height
 
-    img = pilimg.resize((newW, newH))
-    img = img.crop((0, diff // 2, newW, newH - diff // 2))
+    # img = pilimg.resize((newW, newH))
+    # img = img.crop((0, diff // 2, newW, newH - diff // 2))
+    img = pilimg.crop((0, diff // 2, newW, newH - diff // 2))
+
     np_img = np.array(img, dtype=np.float32)
     if len(np_img.shape)==2:
         np_img = np.expand_dims(np_img, 2)

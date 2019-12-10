@@ -17,6 +17,7 @@ import random
 from play import iou
 
 from tensorboardX import SummaryWriter
+from utils.loss import iou_loss
 
 
 N_CHANNELS = 3
@@ -31,7 +32,7 @@ def fit(net,
         tf_writer,
         epochs=5,
         batch_size=1,
-        lr=0.1,
+        lr=0.0001,
         val_percent=0.05,
         save_cp=True,
         gpu=False,
@@ -144,7 +145,11 @@ def fit(net,
                     true_masks_flat = true_masks.reshape(-1)
                 true_masks_flat = true_masks_flat.float()
 
+                # loss
                 loss = criterion(masks_probs_flat, true_masks_flat)
+                in_nonzero = torch.nonzero(true_masks_flat)
+                loss_nonzero = criterion(masks_probs_flat[in_nonzero], true_masks_flat[in_nonzero])
+                loss = loss + loss_nonzero
                 epoch_loss += loss.item()
 
                 true_masks_flat_bin = true_masks_flat.unsqueeze(0)

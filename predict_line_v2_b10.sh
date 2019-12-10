@@ -53,4 +53,22 @@
 #python predict.py -c --mask-threshold 0.1 --model log_line_v2_10b_maxpool/checkpoints/CP40.pth --input data/dataset_line_v2_train_2_1/png --output pred_test_line_v2_10b/train_init_1_2_1_maxpool_40epoch --no-crf --task-type line
 
 # init exp_lr_0.0001 model in test set: 10_1 [10 epoch]
-python predict.py -c --mask-threshold 0.5 --model log_line_v2_10b_LRExp_0-0001/checkpoints/CP10.pth --input data/dataset_line_v2_test_10_1/png --output pred_test_line_v2_10b/test_init_explr0-0001_10_1_maxpool --no-crf --task-type line
+#python predict.py -c --mask-threshold 0.5 --model log_line_v2_10b_LRExp_0-0001/checkpoints/CP10.pth --input data/dataset_line_v2_test_10_1/png --output pred_test_line_v2_10b/test_init_explr0-0001_10_1_maxpool --no-crf --task-type line
+
+# LRExp_0.0001 BCE model in test set: 10_1 [50.pth]
+#python predict.py --mask-threshold 0.5 --model cloud_v100_model/CP50.pth --input data/dataset_line_v2_test_10_1/png --output pred_test_line_v2_10b/test_v100_LRExp_0-0001_BCE --no-crf --task-type line
+
+# LRExp_0.0001 BCE model in train set: 3_1 [50.pth]
+#python predict.py --mask-threshold 0.5 --model cloud_v100_model/CP50.pth --input data/dataset_line_v2_train_3_1/png --output pred_test_line_v2_10b/test_v100_LRExp_0-0001_BCE_3_1 --no-crf --task-type line
+
+# LRExp_0.0001 BCE model in train set: 3_4 [50.pth]
+#python predict.py --mask-threshold 0.5 --model cloud_v100_model/CP50.pth --input data/dataset_line_v2_train_3_4/png --output pred_test_line_v2_10b/test_v100_LRExp_0-0001_BCE_3_4 --no-crf --task-type line
+
+# LRExp_0.0001 BCE model in train set: 4_2 [50.pth]
+#python predict.py --mask-threshold 0.5 --model cloud_v100_model/CP50.pth --input data/dataset_line_v2_train_4_2/png --output pred_test_line_v2_10b/test_v100_LRExp_0-0001_BCE_4_2 --no-crf --task-type line
+
+# LRExp_0.0001 BCE model in train set: 6_1 [50.pth]
+#python predict.py --mask-threshold 0.5 --model cloud_v100_model/CP50.pth --input data/dataset_line_v2_train_6_1/png --output pred_test_line_v2_10b/test_v100_LRExp_0-0001_BCE_6_1 --no-crf --task-type line
+
+# LRExp_0.0001 BCE model in train set: 5_1 [50.pth]
+python predict.py --mask-threshold 0.5 --model cloud_v100_model/CP50.pth --input data/dataset_line_v2_train_5_1/png --output pred_test_line_v2_10b/test_v100_LRExp_0-0001_BCE_5_1 --no-crf --task-type line
