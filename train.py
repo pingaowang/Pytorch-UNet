@@ -14,7 +14,7 @@ from unet import UNet
 from utils import get_ids, split_ids, split_train_val, get_imgs_and_masks, batch
 import random
 
-from play import iou
+from play import iou, iou_all
 
 from tensorboardX import SummaryWriter
 from utils.loss import iou_loss
@@ -117,6 +117,7 @@ def fit(net,
             epoch_loss = 0
             epoch_tot = 0
             epoch_acc = 0
+            epoch_acc_all = 0
 
             i_out = 0
             for i, b in enumerate(batch(train, batch_size)):
@@ -162,14 +163,13 @@ def fit(net,
                 # e = np.array(masks_probs_flat_bin.cpu())
                 # f = np.array(true_masks_flat_bin.cpu())
                 acc_train = iou(np.array(true_masks_flat_bin.cpu()), np.array(masks_probs_flat_bin.cpu()))
+                acc_train_all = iou_all(np.array(true_masks_flat_bin.cpu()), np.array(masks_probs_flat_bin.cpu()))
                 epoch_acc += acc_train
+                epoch_acc_all += acc_train_all
 
                 if i % print_interval == print_interval - 1:
-                    print('{0} / {1} steps. --- loss: {2:.6f}, ACC_train: {3:.4f}, dice: {4:.4f}'.format(i, int(N_train / batch_size), epoch_loss / (i+1), epoch_acc / (i+1), epoch_tot / (i+1)))
-                    f_log.write('{0} / {1} steps. --- loss: {2:.6f}, ACC_train: {3:.4f}, dice: {4:.4f}'.format(i, int(N_train / batch_size), epoch_loss / (i+1), epoch_acc / (i+1), epoch_tot / (i+1)) + '\n')
-
-                    # print('{0} / {1} steps. --- loss: {2:.6f}, Dice: {3:.4f}'.format(i, N_train, epoch_loss / (i + 1),
-                    #                                                                  epoch_tot/ (i + 1)))
+                    print('{0} / {1} steps. --- loss: {2:.6f}, IoU_train_nz: {3:.4f}, IoU_train_all: {4:.4f}, dice: {5:.4f}'.format(i, int(N_train / batch_size), epoch_loss / (i+1), epoch_acc / (i+1), epoch_acc_all / (i+1), epoch_tot / (i+1)))
+                    f_log.write('{0} / {1} steps. --- loss: {2:.6f}, ACC_train: {3:.4f}, IoU_train_all: {4:.4f}, dice: {4:.4f}'.format(i, int(N_train / batch_size), epoch_loss / (i+1), epoch_acc / (i+1), epoch_acc_all / (i+1), epoch_tot / (i+1)) + '\n')
 
                 optimizer.zero_grad()
                 loss.backward()
@@ -177,17 +177,20 @@ def fit(net,
 
                 i_out = i
 
-            print('Epoch {} finished ! Loss: {}, IoU: {}, dice: {}'.format(epoch, epoch_loss / (i_out+1), epoch_acc / (i_out+1), epoch_tot / (i+1)))
-            f_log.write('Epoch finished ! Loss: {}, IoU: {}, dice: {}'.format(epoch_loss / (i_out+1), epoch_acc / (i_out+1), epoch_tot / (i+1)) + '\n')
+            print('Epoch {} finished ! Loss: {}, IoU: {}, IoU_all: {}, dice: {}'.format(epoch, epoch_loss / (i_out+1), epoch_acc / (i_out+1), epoch_acc_all / (i_out+1), epoch_tot / (i+1)))
+            f_log.write('Epoch finished ! Loss: {}, IoU: {}, IoU_all: {}, dice: {}'.format(epoch_loss / (i_out+1), epoch_acc / (i_out+1), epoch_acc_all / (i_out+1), epoch_tot / (i+1)) + '\n')
             tf_writer.add_scalar('data/train_loss', epoch_loss / (i_out+1), epoch)
             tf_writer.add_scalar('data/train_iou', epoch_acc / (i_out + 1), epoch)
+            tf_writer.add_scalar('data/train_iou_all', epoch_acc_all / (i_out + 1), epoch)
             tf_writer.add_scalar('data/train_dice', epoch_tot / (i_out + 1), epoch)
 
             ## Evaluate
             """Evaluation without the densecrf with the dice coefficient"""
             net.eval()
             tot_val = 0
+            epoch_loss_val = 0
             epoch_acc_val = 0
+            epoch_acc_val_all = 0
             for i_val, b_val in enumerate(batch(val, batch_size)):
                 imgs_val = np.array([j[0] for j in b_val]).astype(np.float32)
                 true_masks_val = np.array([j[1] for j in b_val])
@@ -213,38 +216,25 @@ def fit(net,
                 masks_probs_flat_bin_val = (masks_probs_flat_val > 0.5).float().unsqueeze(0)
                 dice_val = dice_coeff(masks_probs_flat_bin_val, true_masks_flat_bin_val).item()
 
-                #############
-                # masks_pred_val_2 = net(imgs)
-                # masks_probs_flat_val_2 = masks_pred_val_2.view(-1)
-                # masks_probs_flat_bin_val_2 = (masks_probs_flat_val_2 > 0.5).float().unsqueeze(0)
-
-                # a = np.array(true_masks_flat_bin.cpu())
-                ##### b = np.array(true_masks_flat_bin_val.cpu())
-                #
-                # c = np.array(masks_probs_flat_bin_val.cpu())
-                ##### d = np.array(masks_probs_flat_bin_val_2.cpu())
-
-                # e = np.array(masks_probs_flat_bin.cpu())
-                # f = np.array(true_masks_flat_bin.cpu())
-                # masks_probs_flat_bin, true_masks_flat_bin
-
-
                 acc_val = iou(np.array(true_masks_flat_bin_val.cpu()), np.array(masks_probs_flat_bin_val.cpu()))
+                acc_val_all = iou_all(np.array(true_masks_flat_bin_val.cpu()), np.array(masks_probs_flat_bin_val.cpu()))
                 epoch_acc_val += acc_val
-                # acc_train = np.mean(e == f)
-                ##############
+                epoch_acc_val_all += acc_val_all
 
                 tot_val += dice_val
-                # print("dice_val:{}".format(dice_val))
 
                 loss_val = criterion(masks_probs_flat, true_masks_flat)
+            epoch_loss_val = loss_val / (i_val + 1)
             epoch_dice_val = tot_val / (i_val + 1)
             epoch_acc_val = epoch_acc_val / (i_val + 1)
+            epoch_acc_val_all = epoch_acc_val_all / (i_val + 1)
 
             # val_dice = eval_net(net, val, gpu)
-            print('Validation ACC: {0:.3f}, dice: {1:.3f}'.format(epoch_acc_val, epoch_dice_val))
-            f_log.write('Validation ACC: {0:.3f}, dice: {1:.3f}'.format(epoch_acc_val, epoch_dice_val) + '\n')
+            print('Val: Loss: {0:.3f}, IoU: {1:.3f}, IoU_all: {2:.3f}, Dice: {3:.3f}'.format(epoch_loss_val, epoch_acc_val, epoch_acc_val_all, epoch_dice_val))
+            f_log.write('Val: Loss: {0:.3f}, IoU: {1:.3f}, IoU_all: {2:.3f}, Dice: {3:.3f}'.format(epoch_loss_val, epoch_acc_val, epoch_acc_val_all, epoch_dice_val) + '\n')
+            tf_writer.add_scalar('data/val_loss', epoch_loss_val, epoch)
             tf_writer.add_scalar('data/val_iou', epoch_acc_val, epoch)
+            tf_writer.add_scalar('data/val_iou_all', epoch_acc_val_all, epoch)
             tf_writer.add_scalar('data/val_dice', epoch_dice_val, epoch)
 
             if save_cp and (epoch % save_interval == save_interval - 1):

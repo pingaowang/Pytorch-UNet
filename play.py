@@ -10,5 +10,9 @@ def iou(truth, pred):
     return np.sum(intersection) / (np.sum(union) + 1e-7)
 
 
+def iou_all(truth, pred):
+    intersection = np.logical_and(truth, pred)
+    union = np.logical_or(truth, pred)
+    return (np.sum(intersection) + 5e-7) / (np.sum(union) + 1e-6)
 
 
