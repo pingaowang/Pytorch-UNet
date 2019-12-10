@@ -230,8 +230,8 @@ def fit(net,
             epoch_acc_val_all = epoch_acc_val_all / (i_val + 1)
 
             # val_dice = eval_net(net, val, gpu)
-            print('Val: Loss: {0:.6f}, IoU: {1:.3f}, IoU_all: {2:.3f}, Dice: {3:.3f}'.format(epoch_loss_val, epoch_acc_val, epoch_acc_val_all, epoch_dice_val))
-            f_log.write('Val: Loss: {0:.6f}, IoU: {1:.3f}, IoU_all: {2:.3f}, Dice: {3:.3f}'.format(epoch_loss_val, epoch_acc_val, epoch_acc_val_all, epoch_dice_val) + '\n')
+            print('* Val: Loss: {0:.6f}, IoU: {1:.3f}, IoU_all: {2:.3f}, Dice: {3:.3f}'.format(epoch_loss_val, epoch_acc_val, epoch_acc_val_all, epoch_dice_val))
+            f_log.write('* Val: Loss: {0:.6f}, IoU: {1:.3f}, IoU_all: {2:.3f}, Dice: {3:.3f}'.format(epoch_loss_val, epoch_acc_val, epoch_acc_val_all, epoch_dice_val) + '\n')
             tf_writer.add_scalar('data/val_loss', epoch_loss_val, epoch)
             tf_writer.add_scalar('data/val_iou', epoch_acc_val, epoch)
             tf_writer.add_scalar('data/val_iou_all', epoch_acc_val_all, epoch)
