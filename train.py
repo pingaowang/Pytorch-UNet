@@ -40,7 +40,8 @@ def fit(net,
         l2=1e-8,
         mom=0.9,
         n_classes=4,
-        loss_function='bce'
+        loss_function='bce',
+        alpha_non_zero = 1
         ):
 
     # dir_png = "data/caddata_line_v2_1_mini/png"
@@ -150,7 +151,7 @@ def fit(net,
                 in_nonzero = torch.nonzero(true_masks_flat)
                 loss_nonzero = criterion(masks_probs_flat[in_nonzero], true_masks_flat[in_nonzero])
                 if in_nonzero.size(0) != 0:
-                    loss = loss + loss_nonzero
+                    loss = loss + alpha_non_zero * loss_nonzero
                 epoch_loss += loss.item()
 
                 true_masks_flat_bin = true_masks_flat.unsqueeze(0)
@@ -279,6 +280,7 @@ def get_args():
     parser.add_option('--l2', default=0.00000001, type=float, help="SGD's L2 panelty.")
     parser.add_option('--mom', default=0.9, type=float, help="SGD's momentum.")
     parser.add_option('--loss', default='bce', type=str, help='loss function. [bce, mse]')
+    parser.add_option('--nz', type='float', default=1, help='coe of non-zero loss.')
 
     (options, args) = parser.parse_args()
     return options
@@ -323,7 +325,8 @@ if __name__ == '__main__':
             mom=args.mom,
             n_classes=N_CLASSES,
             tf_writer=writer,
-            loss_function=args.loss
+            loss_function=args.loss,
+            alpha_non_zero=args.nz
             )  # currently img_scale must equal to 1. old: img_scale=args.scale)
         writer.close()
     except KeyboardInterrupt:
