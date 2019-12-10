@@ -149,7 +149,8 @@ def fit(net,
                 loss = criterion(masks_probs_flat, true_masks_flat)
                 in_nonzero = torch.nonzero(true_masks_flat)
                 loss_nonzero = criterion(masks_probs_flat[in_nonzero], true_masks_flat[in_nonzero])
-                loss = loss + loss_nonzero
+                if in_nonzero.size(0) != 0:
+                    loss = loss + loss_nonzero
                 epoch_loss += loss.item()
 
                 true_masks_flat_bin = true_masks_flat.unsqueeze(0)
