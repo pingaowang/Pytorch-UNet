@@ -6,9 +6,9 @@ h, w, c = arr.shape
 arr_2 = np.zeros((h, w, 3))
 
 for i in range(c):
-    arr_2[:, :, 0] = arr_2[:, :, 0] + arr[:, :, i]
+    x, y = np.where(arr[:, :, i])
+    arr_2[x, y, 0] = arr[x, y, i] * (i + 1) * 50
 
-arr_2 = arr_2 * 10
 arr_2 = arr_2.astype(np.uint8)
 
 print("# if all zeros:")
@@ -20,9 +20,9 @@ print(np.unique(arr_2))
 print("====")
 
 im = Image.fromarray(arr_2, 'RGB')
-im.show()
+im.save('test_1.png')
 
-arr_3 = np.array(im)
+arr_3 = np.array(im)[0]
 print(arr_3.sum())
 print(np.unique(arr_3))
 
