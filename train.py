@@ -8,6 +8,10 @@ import torch.backends.cudnn as cudnn
 import torch.nn as nn
 from torch import optim
 
+from PIL import Image
+import torchvision
+from random import randrange
+
 from eval import eval_net
 from dice_loss import dice_coeff
 from unet import UNet
@@ -39,7 +43,8 @@ def fit(net,
         mom=0.9,
         n_classes=4,
         loss_function='bce',
-        alpha_non_zero = 1
+        alpha_non_zero=1,
+        resize_in=500
         ):
 
     # dir_png = "data/caddata_line_v2_1_mini/png"
@@ -123,13 +128,71 @@ def fit(net,
             epoch_acc_all = 0
 
             i_out = 0
-            for i, b in enumerate(batch(train, batch_size)):
-                imgs = np.array([j[0] for j in b]).astype(np.float32)
-                true_masks = np.array([j[1] for j in b])
 
-                imgs = torch.from_numpy(imgs)
-                true_masks = torch.from_numpy(true_masks)
-                true_masks = np.transpose(true_masks, (0, 3, 1, 2))
+            for i, b in enumerate(batch(train, batch_size)):
+                imgs = np.array([j[0] for j in b]).astype(np.uint8)
+                true_masks = np.array([j[1] for j in b]).astype(np.uint8)
+
+                imgs_2 = np.zeros((imgs.shape[0], resize_in, resize_in, 3))
+                true_masks_2 = np.zeros((true_masks.shape[0], resize_in, resize_in, n_classes))
+
+                ## data augmentation
+                for j in range(imgs.shape[0]):
+                    img = imgs[j, :, :, :]
+                    mask = true_masks[j, :, :, :]
+                    # print(np.unique(mask))
+
+                    pil_img = Image.fromarray(img, 'RGB')
+                    pil_mask = Image.fromarray(mask, 'RGB')
+
+                    ##debug##
+                    # pil_img.show()
+                    # pil_mask.show()
+                    # print(np.unique(mask))
+
+                    seed = np.random.randint(124521346)
+
+                    # Resize Crop ratio: img
+                    random.seed(seed)
+                    pil_img = torchvision.transforms.RandomResizedCrop(size=(resize_in), interpolation=Image.NEAREST)(pil_img)
+                    # Resize Crop ratio: true_masks
+                    random.seed(seed)
+                    pil_mask = torchvision.transforms.RandomResizedCrop(size=(resize_in), interpolation=Image.NEAREST)(pil_mask)
+
+                    # rotate seed
+                    random_degree = randrange(360)
+                    # rotate: img
+                    pil_img = torchvision.transforms.functional.rotate(pil_img, angle=random_degree)
+                    # rotate: true_masks
+                    pil_mask = torchvision.transforms.functional.rotate(pil_mask, angle=random_degree)
+
+                    # color: img
+                    # color: true_masks
+
+                    # upload img and mask to ims_2 and mask_2
+                    arr_img = np.array(pil_img)
+                    arr_img = arr_img / 255. - 0.5
+                    imgs_2[j, :, :, :] = arr_img
+
+                    arr_mask = np.array(pil_mask)
+                    arr_mask_2 = np.zeros((resize_in, resize_in, n_classes))
+                    for in_c in range(n_classes):
+                        in_1, in_2 = np.where(arr_mask[:, :, 0] == (in_c + 1))
+                        arr_mask_2[in_1, in_2, in_c] = arr_mask[in_1, in_2, 0].astype(bool).astype(np.float32)
+                    true_masks_2[j, :, :, :] = arr_mask_2
+                    # true_masks_2.astype(np.float32)
+                    # print("======")
+                    # print(np.unique(true_masks_2))
+
+                ## To TorchTensor
+                # imgs:
+                imgs = torch.from_numpy(imgs_2.astype(np.float32).transpose(0,3,1,2))
+                # true_masks:
+                true_masks = torch.from_numpy(true_masks_2.transpose(0,3,1,2))
+
+                # imgs = torch.from_numpy(imgs)
+                # true_masks = torch.from_numpy(true_masks)
+                # true_masks = np.transpose(true_masks, (0, 3, 1, 2))
 
                 assert imgs.size()[1] == N_CHANNELS
                 assert true_masks.size()[1] == n_classes
@@ -187,50 +250,94 @@ def fit(net,
             tf_writer.add_scalar('data/train_iou_all', epoch_acc_all / (i_out + 1), epoch)
             tf_writer.add_scalar('data/train_dice', epoch_tot / (i_out + 1), epoch)
 
+
+
             ## Evaluate
-            """Evaluation without the densecrf with the dice coefficient"""
             net.eval()
             tot_val = 0
             epoch_loss_val = 0
             epoch_acc_val = 0
             epoch_acc_val_all = 0
             for i_val, b_val in enumerate(batch(val, batch_size)):
-                imgs_val = np.array([j[0] for j in b_val]).astype(np.float32)
-                true_masks_val = np.array([j[1] for j in b_val])
+                # imgs_val = np.array([j[0] for j in b_val]).astype(np.float32)
+                # true_masks_val = np.array([j[1] for j in b_val])
+                #
+                # imgs_val = torch.from_numpy(imgs_val)
+                # true_masks_val = torch.from_numpy(true_masks_val)
+                # true_masks_val = np.transpose(true_masks_val, (0, 3, 1, 2))
 
-                imgs_val = torch.from_numpy(imgs_val)
-                true_masks_val = torch.from_numpy(true_masks_val)
-                true_masks_val = np.transpose(true_masks_val, (0, 3, 1, 2))
+                ####
+                imgs_val = np.array([j[0] for j in b_val]).astype(np.uint8)
+                true_masks_val = np.array([j[1] for j in b_val]).astype(np.uint8)
 
-                if gpu:
-                    imgs_val = imgs_val.cuda()
-                    true_masks_val = true_masks_val.cuda()
+                imgs_2 = np.zeros((imgs.shape[0], resize_in, resize_in, 3))
+                true_masks_2 = np.zeros((true_masks_val.shape[0], resize_in, resize_in, n_classes))
 
-                masks_pred_val = net(imgs_val)
-                masks_probs_flat_val = masks_pred_val.view(-1)
+                ## data augmentation
+                if imgs_val.shape[0] == batch_size:
+                    for j in range(imgs_val.shape[0]):
+                        img = imgs_val[j, :, :, :]
+                        mask = true_masks_val[j, :, :, :]
+                        # print(np.unique(mask))
 
-                if gpu:
-                    true_masks_flat_val = true_masks_val.view(-1)
-                else:
-                    true_masks_flat_val = true_masks_val.reshape(-1)
-                true_masks_flat_val = true_masks_flat_val.float()
+                        pil_img = Image.fromarray(img, 'RGB')
+                        pil_mask = Image.fromarray(mask, 'RGB')
 
-                true_masks_flat_bin_val = true_masks_flat_val.unsqueeze(0)
-                masks_probs_flat_bin_val = (masks_probs_flat_val > 0.5).float().unsqueeze(0)
-                dice_val = dice_coeff(masks_probs_flat_bin_val, true_masks_flat_bin_val).item()
+                        # resize
+                        pil_img = torchvision.transforms.Resize(size=(resize_in), interpolation=Image.NEAREST)(pil_img)
+                        pil_mask = torchvision.transforms.Resize(size=(resize_in), interpolation=Image.NEAREST)(pil_mask)
 
-                acc_val = iou(np.array(true_masks_flat_bin_val.cpu()), np.array(masks_probs_flat_bin_val.cpu()))
-                acc_val_all = iou_all(np.array(true_masks_flat_bin_val.cpu()), np.array(masks_probs_flat_bin_val.cpu()))
-                epoch_acc_val += acc_val
-                epoch_acc_val_all += acc_val_all
+                        # upload img and mask to ims_2 and mask_2
+                        arr_img = np.array(pil_img)
+                        arr_img = arr_img / 255. - 0.5
+                        imgs_2[j, :, :, :] = arr_img
 
-                tot_val += dice_val
+                        arr_mask = np.array(pil_mask)
+                        arr_mask_2 = np.zeros((resize_in, resize_in, n_classes))
+                        for in_c in range(n_classes):
+                            in_1, in_2 = np.where(arr_mask[:, :, 0] == (in_c + 1))
+                            arr_mask_2[in_1, in_2, in_c] = arr_mask[in_1, in_2, 0].astype(bool).astype(np.float32)
+                        true_masks_2[j, :, :, :] = arr_mask_2
+                        # true_masks_2.astype(np.float32)
+                        # print("======")
+                        # print(np.unique(true_masks_2))
 
-                loss_val = criterion(masks_probs_flat, true_masks_flat)
-                in_nonzero = torch.nonzero(true_masks_flat)
-                loss_val_nonzero = criterion(masks_probs_flat[in_nonzero], true_masks_flat[in_nonzero])
-                if in_nonzero.size(0) != 0:
-                    loss_val = loss_val + alpha_non_zero * loss_val_nonzero
+                    ## To TorchTensor
+                    # imgs:
+                    imgs_val = torch.from_numpy(imgs_2.astype(np.float32).transpose(0, 3, 1, 2))
+                    # true_masks:
+                    true_masks_val = torch.from_numpy(true_masks_2.transpose(0, 3, 1, 2))
+
+
+                    if gpu:
+                        imgs_val = imgs_val.cuda()
+                        true_masks_val = true_masks_val.cuda()
+
+                    masks_pred_val = net(imgs_val)
+                    masks_probs_flat_val = masks_pred_val.view(-1)
+
+                    if gpu:
+                        true_masks_flat_val = true_masks_val.view(-1)
+                    else:
+                        true_masks_flat_val = true_masks_val.reshape(-1)
+                    true_masks_flat_val = true_masks_flat_val.float()
+
+                    true_masks_flat_bin_val = true_masks_flat_val.unsqueeze(0)
+                    masks_probs_flat_bin_val = (masks_probs_flat_val > 0.5).float().unsqueeze(0)
+                    dice_val = dice_coeff(masks_probs_flat_bin_val, true_masks_flat_bin_val).item()
+
+                    acc_val = iou(np.array(true_masks_flat_bin_val.cpu()), np.array(masks_probs_flat_bin_val.cpu()))
+                    acc_val_all = iou_all(np.array(true_masks_flat_bin_val.cpu()), np.array(masks_probs_flat_bin_val.cpu()))
+                    epoch_acc_val += acc_val
+                    epoch_acc_val_all += acc_val_all
+
+                    tot_val += dice_val
+
+                    loss_val = criterion(masks_probs_flat_val, true_masks_flat_val)
+                    in_nonzero = torch.nonzero(true_masks_flat_val)
+                    loss_val_nonzero = criterion(masks_probs_flat_val[in_nonzero], true_masks_flat_val[in_nonzero])
+                    if in_nonzero.size(0) != 0:
+                        loss_val = loss_val + alpha_non_zero * loss_val_nonzero
 
             epoch_loss_val = loss_val / (i_val + 1)
             epoch_dice_val = tot_val / (i_val + 1)
@@ -279,6 +386,7 @@ def get_args():
     parser.add_option('--mom', default=0.9, type=float, help="SGD's momentum.")
     parser.add_option('--loss', default='bce', type=str, help='loss function. [bce, mse]')
     parser.add_option('--nz', type='float', default=1, help='coe of non-zero loss.')
+    parser.add_option('--resize', type=int, default=500, help='resize of the feed image')
 
     (options, args) = parser.parse_args()
     return options
@@ -324,7 +432,8 @@ if __name__ == '__main__':
             n_classes=N_CLASSES,
             tf_writer=writer,
             loss_function=args.loss,
-            alpha_non_zero=args.nz
+            alpha_non_zero=args.nz,
+            resize_in=args.resize
             )  # currently img_scale must equal to 1. old: img_scale=args.scale)
         writer.close()
     except KeyboardInterrupt:

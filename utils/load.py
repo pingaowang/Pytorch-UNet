@@ -42,12 +42,14 @@ def get_imgs_and_masks(ids, dir_img, dir_mask, scale):
     imgs = to_cropped_imgs(ids, dir_img, '.png', scale)
 
     # need to transform from HWC to CHW
-    imgs_switched = map(hwc_to_chw, imgs)
-    imgs_normalized = map(normalize, imgs_switched)
+    # imgs_switched = map(hwc_to_chw, imgs)
+    # imgs_normalized = map(normalize, imgs_switched)
 
-    masks = load_mask_npy(ids, dir_mask, '.npy')
+    # masks = load_mask_npy(ids, dir_mask, '.npy')
+    masks = to_cropped_imgs(ids, dir_mask, '.png', scale)
+    # masks_switched = map(hwc_to_chw, masks)
 
-    return zip(imgs_normalized, masks)
+    return zip(imgs, masks)
 
 
 def get_full_img_and_mask(id, dir_img, dir_mask):

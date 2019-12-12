@@ -100,4 +100,15 @@
 # nz_1 model in test set: 10_1 [50.pth]
 #python predict.py --mask-threshold 0.5 --model cloud_v100_model/nz_0-01/CP60.pth --input data/dataset_line_v2_test_10_1/png --output pred_test_line_v2_10b/test_v100_nz_0-01_10_1 --no-crf --task-type line
 # nz_0-01 model in train set: 2_1 [50.pth]
-python predict.py --mask-threshold 0.5 --model cloud_v100_model/nz_0-01/CP60.pth --input data/dataset_line_v2_train_2_1/png --output pred_test_line_v2_10b/train_v100_nz_0-01_2_1 --no-crf --task-type line
+#python predict.py --mask-threshold 0.5 --model cloud_v100_model/nz_0-01/CP60.pth --input data/dataset_line_v2_train_2_1/png --output pred_test_line_v2_10b/train_v100_nz_0-01_2_1 --no-crf --task-type line
+
+# v3_reseume_1_300pth model in train set: 3_1
+python predict.py --mask-threshold 0.5 --model cloud_v100_model/v3/CP300.pth --input data/dataset_line_v2_train_3_1/png --output pred_test_line_v2_10b/v100_v3_reseume_1_300pth_train_3_1 --no-crf --task-type line
+# v3_reseume_1_300pth model in train set: 4_2
+python predict.py --mask-threshold 0.5 --model cloud_v100_model/v3/CP300.pth --input data/dataset_line_v2_train_4_2/png --output pred_test_line_v2_10b/v100_v3_reseume_1_300pth_train_4_2 --no-crf --task-type line
+# v3_reseume_1_300pth model in train set: 5_1
+python predict.py --mask-threshold 0.5 --model cloud_v100_model/v3/CP300.pth --input data/dataset_line_v2_train_5_1/png --output pred_test_line_v2_10b/v100_v3_reseume_1_300pth_train_5_1 --no-crf --task-type line
+# v3_reseume_1_300pth model in test set: 10_1
+python predict.py --mask-threshold 0.5 --model cloud_v100_model/v3/CP300.pth --input data/dataset_line_v2_test_10_1/png --output pred_test_line_v2_10b/v100_v3_reseume_1_300pth_train_10_1 --no-crf --task-type line
+# v3_reseume_1_300pth model in train set: 2_1
+python predict.py --mask-threshold 0.5 --model cloud_v100_model/v3/CP300.pth --input data/dataset_line_v2_train_2_1/png --output pred_test_line_v2_10b/v100_v3_reseume_1_300pth_train_2_1 --no-crf --task-type line

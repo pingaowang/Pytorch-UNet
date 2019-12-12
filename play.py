@@ -1,5 +1,11 @@
 import numpy as np
 from PIL import Image
+import torchvision
+from random import randrange
+import random
+
+
+N_CLS = 4
 
 arr = np.load('data/dataset_line_v2_test_10_2/mask/10_1_0008.npy')
 h, w, c = arr.shape
@@ -11,19 +17,20 @@ for i in range(c):
 
 arr_2 = arr_2.astype(np.uint8)
 
-print("# if all zeros:")
-print(arr.sum())
-print(arr_2.sum())
-print("====")
-print(np.unique(arr))
-print(np.unique(arr_2))
-print("====")
-
 im = Image.fromarray(arr_2, 'RGB')
-im.save('test_1.png')
 
-arr_3 = np.array(im)[0]
-print(arr_3.sum())
-print(np.unique(arr_3))
+seed = np.random.randint(12452346)
 
+# resize, crop, ratio
+random.seed(seed)
+trans_1 = torchvision.transforms.RandomResizedCrop(size=(500), interpolation=Image.NEAREST)
+im_4 = trans_1(im)
+im_4.show()
+
+# rotate
+random_degree = randrange(360)
+im_5 = torchvision.transforms.functional.rotate(im, angle=random_degree)  #, interpolation=Image.NEAREST) , angle=random_degree
+im_5.show()
+
+np.unique(np.array(im_5))
 im.show()
