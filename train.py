@@ -270,7 +270,7 @@ def fit(net,
                 imgs_val = np.array([j[0] for j in b_val]).astype(np.uint8)
                 true_masks_val = np.array([j[1] for j in b_val]).astype(np.uint8)
 
-                imgs_2 = np.zeros((imgs.shape[0], resize_in, resize_in, 3))
+                imgs_2 = np.zeros((imgs_val.shape[0], resize_in, resize_in, 3))
                 true_masks_2 = np.zeros((true_masks_val.shape[0], resize_in, resize_in, n_classes))
 
                 ## data augmentation
@@ -287,7 +287,7 @@ def fit(net,
                         pil_img = torchvision.transforms.Resize(size=(resize_in), interpolation=Image.NEAREST)(pil_img)
                         pil_mask = torchvision.transforms.Resize(size=(resize_in), interpolation=Image.NEAREST)(pil_mask)
 
-                        # upload img and mask to ims_2 and mask_2
+                        # upload img and mask to imgs_2 and mask_2
                         arr_img = np.array(pil_img)
                         arr_img = arr_img / 255. - 0.5
                         imgs_2[j, :, :, :] = arr_img
