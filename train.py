@@ -24,7 +24,7 @@ from utils.loss import iou, iou_all
 
 N_CHANNELS = 3
 N_CLASSES_AREA = 8
-N_CLASSES_LINE = 4
+N_CLASSES_LINE = 2
 
 save_interval = 10
 print_interval = 100
@@ -154,10 +154,10 @@ def fit(net,
 
                     # Resize Crop ratio: img
                     random.seed(seed)
-                    pil_img = torchvision.transforms.RandomResizedCrop(size=(resize_in), interpolation=Image.NEAREST)(pil_img)
+                    pil_img = torchvision.transforms.RandomResizedCrop(size=(resize_in), scale=(0.8, 1.0), interpolation=Image.NEAREST)(pil_img)
                     # Resize Crop ratio: true_masks
                     random.seed(seed)
-                    pil_mask = torchvision.transforms.RandomResizedCrop(size=(resize_in), interpolation=Image.NEAREST)(pil_mask)
+                    pil_mask = torchvision.transforms.RandomResizedCrop(size=(resize_in), scale=(0.8, 1.0), interpolation=Image.NEAREST)(pil_mask)
 
                     # rotate seed
                     random_degree = randrange(360)
