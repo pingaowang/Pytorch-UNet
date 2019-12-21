@@ -154,10 +154,10 @@ def fit(net,
 
                     # Resize Crop ratio: img
                     random.seed(seed)
-                    pil_img = torchvision.transforms.RandomResizedCrop(size=(resize_in), scale=(0.8, 1.0), interpolation=Image.NEAREST)(pil_img)
+                    pil_img = torchvision.transforms.RandomResizedCrop(size=(resize_in), scale=(0.8, 1.0), ratio=(1, 1), interpolation=Image.NEAREST)(pil_img)
                     # Resize Crop ratio: true_masks
                     random.seed(seed)
-                    pil_mask = torchvision.transforms.RandomResizedCrop(size=(resize_in), scale=(0.8, 1.0), interpolation=Image.NEAREST)(pil_mask)
+                    pil_mask = torchvision.transforms.RandomResizedCrop(size=(resize_in), scale=(0.8, 1.0), ratio=(1, 1), interpolation=Image.NEAREST)(pil_mask)
 
                     # rotate seed
                     random_degree = randrange(360)
