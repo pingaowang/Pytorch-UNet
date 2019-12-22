@@ -22,12 +22,19 @@ from tensorboardX import SummaryWriter
 from utils.loss import iou, iou_all
 
 
-N_CHANNELS = 3
+N_CHANNELS = 1
 N_CLASSES_AREA = 8
 N_CLASSES_LINE = 2
 
 save_interval = 10
 print_interval = 100
+
+
+def rgb_pil_to_bw_norm_arr(pil_img):
+    pil_bw = pil_img.convert('L').point(lambda x: 0 if x != 255 else 255, '1')
+    arr_img = np.array(pil_bw).astype(np.float32)
+    arr_img = arr_img - 0.5
+    return arr_img
 
 
 def fit(net,
@@ -133,7 +140,7 @@ def fit(net,
                 imgs = np.array([j[0] for j in b]).astype(np.uint8)
                 true_masks = np.array([j[1] for j in b]).astype(np.uint8)
 
-                imgs_2 = np.zeros((imgs.shape[0], resize_in, resize_in, 3))
+                imgs_2 = np.zeros((imgs.shape[0], N_CHANNELS, resize_in, resize_in))
                 true_masks_2 = np.zeros((true_masks.shape[0], resize_in, resize_in, n_classes))
 
                 ## data augmentation
@@ -159,20 +166,22 @@ def fit(net,
                     random.seed(seed)
                     pil_mask = torchvision.transforms.RandomResizedCrop(size=(resize_in), scale=(0.8, 1.0), interpolation=Image.NEAREST)(pil_mask)
 
+                    """
                     # rotate seed
                     random_degree = randrange(360)
                     # rotate: img
                     pil_img = torchvision.transforms.functional.rotate(pil_img, angle=random_degree)
                     # rotate: true_masks
                     pil_mask = torchvision.transforms.functional.rotate(pil_mask, angle=random_degree)
+                    """
 
                     # color: img
                     # color: true_masks
+                    arr_img = rgb_pil_to_bw_norm_arr(pil_img)
+                    # print(np.unique(arr_img))
 
-                    # upload img and mask to ims_2 and mask_2
-                    arr_img = np.array(pil_img)
-                    arr_img = arr_img / 255. - 0.5
-                    imgs_2[j, :, :, :] = arr_img
+                    imgs_2[j, 0, :, :] = arr_img
+                    # print(np.unique(imgs_2))
 
                     arr_mask = np.array(pil_mask)
                     arr_mask_2 = np.zeros((resize_in, resize_in, n_classes))
@@ -186,18 +195,20 @@ def fit(net,
 
                 ## To TorchTensor
                 # imgs:
-                imgs = torch.from_numpy(imgs_2.astype(np.float32).transpose(0,3,1,2))
+                # imgs = torch.from_numpy(imgs_2.astype(np.float32).transpose(0,3,1,2))
+                imgs = torch.from_numpy(imgs_2.astype(np.float32))
                 # true_masks:
-                true_masks = torch.from_numpy(true_masks_2.transpose(0,3,1,2))
+                # true_masks = torch.from_numpy(true_masks_2.transpose(0,3,1,2))
+                true_masks = torch.from_numpy(true_masks_2)
 
                 # imgs = torch.from_numpy(imgs)
                 # true_masks = torch.from_numpy(true_masks)
                 # true_masks = np.transpose(true_masks, (0, 3, 1, 2))
 
-                assert imgs.size()[1] == N_CHANNELS
-                assert true_masks.size()[1] == n_classes
-                assert true_masks.size()[2] == imgs.size()[2]
-                assert true_masks.size()[3] == imgs.size()[3]
+                # assert imgs.size()[1] == N_CHANNELS
+                # assert true_masks.size()[1] == n_classes
+                # assert true_masks.size()[2] == imgs.size()[2]
+                # assert true_masks.size()[3] == imgs.size()[3]
 
                 if gpu:
                     imgs = imgs.cuda()
@@ -270,7 +281,7 @@ def fit(net,
                 imgs_val = np.array([j[0] for j in b_val]).astype(np.uint8)
                 true_masks_val = np.array([j[1] for j in b_val]).astype(np.uint8)
 
-                imgs_2 = np.zeros((imgs_val.shape[0], resize_in, resize_in, 3))
+                imgs_2 = np.zeros((imgs_val.shape[0], N_CHANNELS, resize_in, resize_in))
                 true_masks_2 = np.zeros((true_masks_val.shape[0], resize_in, resize_in, n_classes))
 
                 ## data augmentation
@@ -288,9 +299,8 @@ def fit(net,
                         pil_mask = torchvision.transforms.Resize(size=(resize_in), interpolation=Image.NEAREST)(pil_mask)
 
                         # upload img and mask to imgs_2 and mask_2
-                        arr_img = np.array(pil_img)
-                        arr_img = arr_img / 255. - 0.5
-                        imgs_2[j, :, :, :] = arr_img
+                        arr_img = rgb_pil_to_bw_norm_arr(pil_img)
+                        imgs_2[j, N_CHANNELS, :, :] = arr_img
 
                         arr_mask = np.array(pil_mask)
                         arr_mask_2 = np.zeros((resize_in, resize_in, n_classes))
