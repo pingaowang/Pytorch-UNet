@@ -314,9 +314,9 @@ def fit(net,
 
                     ## To TorchTensor
                     # imgs:
-                    imgs_val = torch.from_numpy(imgs_2.astype(np.float32).transpose(0, 3, 1, 2))
+                    imgs_val = torch.from_numpy(imgs_2.astype(np.float32))
                     # true_masks:
-                    true_masks_val = torch.from_numpy(true_masks_2.transpose(0, 3, 1, 2))
+                    true_masks_val = torch.from_numpy(true_masks_2)
 
 
                     if gpu:
