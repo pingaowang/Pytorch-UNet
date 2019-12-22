@@ -180,7 +180,7 @@ def fit(net,
                     arr_img = rgb_pil_to_bw_norm_arr(pil_img)
                     # print(np.unique(arr_img))
 
-                    imgs_2[j, 0, :, :] = arr_img
+                    imgs_2[j, N_CHANNELS - 1, :, :] = arr_img
                     # print(np.unique(imgs_2))
 
                     arr_mask = np.array(pil_mask)
@@ -300,7 +300,7 @@ def fit(net,
 
                         # upload img and mask to imgs_2 and mask_2
                         arr_img = rgb_pil_to_bw_norm_arr(pil_img)
-                        imgs_2[j, N_CHANNELS, :, :] = arr_img
+                        imgs_2[j, N_CHANNELS - 1, :, :] = arr_img
 
                         arr_mask = np.array(pil_mask)
                         arr_mask_2 = np.zeros((resize_in, resize_in, n_classes))
